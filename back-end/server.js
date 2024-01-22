@@ -1,6 +1,7 @@
 const bodyParser = require('body-parser');
 const express = require('express');
 const userRoutes = require('./src/routes/userRoutes');
+const messageRoutes = require('./src/routes/messagesRoutes');
 const {Sequelize, DataTypes} = require('sequelize');
 const app = express()
 require('dotenv').config();
@@ -17,6 +18,7 @@ const sequelize = new Sequelize({
 app.use(bodyParser.json());
 
 app.use('/users', userRoutes);
+app.use('/message', messageRoutes);
 
 app.get('/', (req, res) => {
   res.send('Realtime chat app')
