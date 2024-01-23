@@ -4,7 +4,8 @@ const userRoutes = require('./src/routes/userRoutes');
 const messageRoutes = require('./src/routes/messagesRoutes');
 const userModels = require('./models/users');
 const {Sequelize, DataTypes} = require('sequelize');
-const app = express()
+const app = express();
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 require('dotenv').config();
@@ -25,14 +26,20 @@ app.post('/login', async(req, res) => {
   const {username, password} = req.body;
 
   try{
-    const user = await sequelize.query(`SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`);
+    const user = sequelize.query(`SELECT * FROM users WHERE username = '${username}'`)
     if(!user){
       return res.status(401).json({message: "Invalid Credentials"});
     }
 
-    const token = jwt.sign({userId: user.id, username: user.username}, secretKey, {expiresIn: '1h'});
+    const passwordMatch = await bcrypt.compare(password, user.password);  
 
-    res.json(token);
+    if(passwordMatch){
+      const token = jwt.sign({userId: user.id, username: user.username}, secretKey, {expiresIn: '1h'});
+
+      res.json({token});
+    } else{
+      res.status(401).json({message: 'Invalid Credentials'});
+    }
   } catch(error){
     console.error(error);
     res.status(500).json({message: "Internal Server Error"});
